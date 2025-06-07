@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Моя Игра-Кликер</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #2c2c2c; /* Темный фон */
+            color: #f0f0f0; /* Светлый текст */
+            overflow: hidden;
+        }
+        #game-container {
+            text-align: center;
+            background-color: #3a3a3a;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #4CAF50; /* Зеленый заголовок */
+        }
+        #score {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #FFD700; /* Золотой цвет для очков */
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 1.5em;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            background-color: #4CAF50;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        button:active {
+            background-color: #45a049;
+            transform: translateY(2px);
+        }
+        #send-score-btn {
+            margin-top: 20px;
+            background-color: #008CBA; /* Синяя кнопка */
+        }
+        #send-score-btn:active {
+            background-color: #007bb5;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Кликни Монетку!</h1>
+        <div id="score">0</div>
+        <button id="click-btn">Клик!</button>
+        <button id="send-score-btn" style="display: none;">Отправить результат боту</button>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        let score = 0;
+        const scoreDisplay = document.getElementById('score');
+        const clickButton = document.getElementById('click-btn');
+        const sendScoreButton = document.getElementById('send-score-btn');
+
+        // Инициализация Telegram Web App
+        const Telegram = window.Telegram.WebApp;
+        Telegram.ready(); // Уведомляем Telegram, что Web App готово
+
+        // Опционально: можно показать кнопку закрытия в хедере Web App
+        Telegram.setHeaderColor('#4CAF50'); // Цвет заголовка Web App (можно взять из CSS)
+        Telegram.setBackgroundColor('#2c2c2c'); // Цвет фона Web App
+        Telegram.expand(); // Разворачиваем Web App на весь экран
+
+        clickButton.addEventListener('click', () => {
+            score++;
+            scoreDisplay.textContent = score;
+            // Показываем кнопку отправки результата после первого клика
+            if (score > 0) {
+                sendScoreButton.style.display = 'block';
+            }
+        });
+
+        sendScoreButton.addEventListener('click', () => {
+            // Отправляем данные боту
+            // Telegram.WebApp.sendData() отправляет строку. 
+            // JSON.stringify() используется для передачи объекта.
+            Telegram.sendData(JSON.stringify({ type: 'game_result', score: score }));
+            Telegram.close(); // Закрываем Web App после отправки
+        });
+
+        // Можно также обрабатывать событие закрытия Web App
+        Telegram.onEvent('mainButtonClicked', () => {
+            // Это кнопка, которую можно настроить через Telegram.WebApp.MainButton
+            // В данном примере мы используем свою кнопку.
+        });
+
+        // Пример: если бот передает данные в Web App при открытии
+        if (Telegram.initDataUnsafe && Telegram.initDataUnsafe.start_param) {
+            // Например, бот мог передать начальный баланс или уровень игры
+            const initialData = JSON.parse(Telegram.initDataUnsafe.start_param);
+            if (initialData.initial_score) {
+                score = initialData.initial_score;
+                scoreDisplay.textContent = score;
+                if (score > 0) {
+                    sendScoreButton.style.display = 'block';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
